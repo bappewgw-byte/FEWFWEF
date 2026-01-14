@@ -1,0 +1,303 @@
+--[[ 
+    MINI-MAX UI LIBRARY v1.0
+    Style: Modern Dark
+    Created for Roblox
+]]
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local Player = Players.LocalPlayer
+local PlayerGui = Player:WaitForChild("PlayerGui")
+
+-- Konfigurasi Tema
+local Theme = {
+    Background = Color3.fromRGB(30, 30, 30),
+    Secondary = Color3.fromRGB(40, 40, 40),
+    Accent = Color3.fromRGB(0, 150, 255), -- Biru Muda
+    Text = Color3.fromRGB(255, 255, 255),
+    SubText = Color3.fromRGB(180, 180, 180),
+    Stroke = Color3.fromRGB(0, 0, 0),
+}
+
+local Library = {
+    Flags = {}, -- Untuk menyimpan status toggle/slider
+    Toggled = false,
+    Dragging = false
+}
+
+-- Fungsi Helper: Membuat Instance dengan props
+local function CreateInstance(className, props)
+    local inst = Instance.new(className)
+    for i, v in pairs(props) do
+        inst[i] = v
+    end
+    return inst
+end
+
+-- Fungsi Inisialisasi (Panggil sekali saja)
+function Library:Init(keybind)
+    -- Membuat ScreenGui
+    self.ScreenGui = CreateInstance("ScreenGui", {
+        Name = "MiniMaxUI",
+        Parent = PlayerGui,
+        IgnoreGuiInset = true,
+        ResetOnSpawn = false
+    })
+
+    -- Membuat Frame Utama (Window)
+    self.MainFrame = CreateInstance("Frame", {
+        Name = "MainFrame",
+        Parent = self.ScreenGui,
+        BackgroundColor3 = Theme.Background,
+        BorderSizePixel = 0,
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Size = UDim2.new(0, 500, 0, 350),
+        ClipsDescendants = true,
+        Visible = false
+    })
+
+    -- Corner (Rounded)
+    local UICorner = CreateInstance("UICorner", { CornerRadius = UDim.new(0, 12), Parent = self.MainFrame })
+    
+    -- Shadow
+    local DropShadow = CreateInstance("ImageLabel", {
+        Name = "DropShadow",
+        Parent = self.MainFrame,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = UDim2.new(1, 47, 1, 47),
+        ZIndex = -1,
+        Image = "rbxassetid://6014261993", -- ID Shadow default Roblox
+        ImageColor3 = Color3.fromRGB(0, 0, 0),
+        ImageTransparency = 0.5
+    })
+
+    -- Topbar (Drag Area)
+    self.TopBar = CreateInstance("Frame", {
+        Name = "TopBar",
+        Parent = self.MainFrame,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 0, 40)
+    })
+
+    -- Judul
+    self.Title = CreateInstance("TextLabel", {
+        Name = "Title",
+        Parent = self.TopBar,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 15, 0, 0),
+        Size = UDim2.new(1, -15, 1, 0),
+        Font = Enum.Font.GothamBold,
+        Text = "Mini-Max UI Library",
+        TextColor3 = Theme.Text,
+        TextSize = 18,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+
+    -- Container Isi
+    self.Content = CreateInstance("Frame", {
+        Name = "Content",
+        Parent = self.MainFrame,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 0, 0, 40),
+        Size = UDim2.new(1, 0, 1, -40)
+    })
+
+    -- List Layout
+    self.ListLayout = CreateInstance("UIListLayout", {
+        Parent = self.Content,
+        Padding = UDim.new(0, 10),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        HorizontalAlignment = Enum.HorizontalAlignment.Center,
+        VerticalAlignment = Enum.VerticalAlignment.Top
+    })
+    
+    -- Padding
+    self.Padding = CreateInstance("UIPadding", {
+        Parent = self.Content,
+        PaddingTop = UDim.new(0, 10),
+        PaddingBottom = UDim.new(0, 10),
+        PaddingLeft = UDim.new(0, 10),
+        PaddingRight = UDim.new(0, 10)
+    })
+
+    -- Fungsi Toggle Window
+    local function ToggleUI()
+        self.Toggled = not self.Toggled
+        local goal = self.Toggled and UDim2.new(0.5, 0, 0.5, 0) or UDim2.new(0.5, 0, 1.5, 0) -- Animasi geser bawah
+        if not self.Toggled then goal = UDim2.new(0.5, 0, 0.5, 0) end -- Jika disembunyikan, taruh di tengah tapi invisible? Bisa dimodif.
+        
+        -- Kita buat animasi Fade + Scale
+        self.MainFrame.Visible = true
+        local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        
+        if self.Toggled then
+            TweenService:Create(self.MainFrame, tweenInfo, {Position = UDim2.new(0.5, 0, 0.5, 0), Size = UDim2.new(0, 500, 0, 350)}):Play()
+        else
+            TweenService:Create(self.MainFrame, tweenInfo, {Position = UDim2.new(0.5, 0, 1.5, 0), Size = UDim2.new(0, 0, 0, 0)}):Play()
+            task.delay(0.3, function() self.MainFrame.Visible = false end)
+        end
+    end
+
+    -- Input Handling (Keybind)
+    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == keybind then
+            ToggleUI()
+        end
+    end)
+
+    -- Dragging Logic
+    local dragInput
+    local dragStart
+    local startPos
+
+    UserInputService.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            local gui = self.MainFrame
+            local inputPos = UserInputService:GetMouseLocation() - Vector2.new(0, game:GetService("GuiService"):GetGuiInset().Y)
+            if (gui.AbsolutePosition.X <= inputPos.X and gui.AbsolutePosition.X + gui.AbsoluteSize.X >= inputPos.X) and
+               (gui.AbsolutePosition.Y <= inputPos.Y and gui.AbsolutePosition.Y + gui.AbsoluteSize.Y >= inputPos.Y) then
+                self.Dragging = true
+                dragStart = inputPos
+                startPos = gui.Position
+            end
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if self.Dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            self.MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            self.Dragging = false
+        end
+    end)
+    
+    return self
+end
+
+-- Method: Membuat Window (Tab)
+function Library:Window(title)
+    local WindowFrame = CreateInstance("Frame", {
+        Name = "Window_" .. title,
+        Parent = self.Content,
+        BackgroundColor3 = Theme.Secondary,
+        BorderSizePixel = 0,
+        Size = UDim2.new(1, 0, 0, 45),
+        LayoutOrder = 0
+    })
+    
+    CreateInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = WindowFrame})
+
+    local WindowTitle = CreateInstance("TextLabel", {
+        Parent = WindowFrame,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 10, 0, 0),
+        Size = UDim2.new(1, -10, 1, 0),
+        Text = title,
+        Font = Enum.Font.GothamBold,
+        TextColor3 = Theme.Accent,
+        TextSize = 16,
+        TextXAlignment = Enum.TextXAlignment.Left
+    })
+    
+    local WindowObj = {}
+    
+    function WindowObj:Button(text, callback)
+        local Btn = CreateInstance("TextButton", {
+            Parent = WindowFrame,
+            BackgroundColor3 = Theme.Accent,
+            Size = UDim2.new(1, -20, 0, 35),
+            Position = UDim2.new(0, 10, 0, 55), -- Ini perlu dihitung dinamis sebenarnya, tapi untuk simplifikasi kita buat AutoScroll
+            AutoButtonColor = false,
+            Font = Enum.Font.GothamBold,
+            Text = text,
+            TextColor3 = Theme.Text,
+            TextSize = 14
+        })
+        
+        CreateInstance("UICorner", {CornerRadius = UDim.new(0, 6), Parent = Btn})
+        
+        -- Hover Effect
+        Btn.MouseEnter:Connect(function()
+            TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 150, 255)}):Play()
+        end)
+        Btn.MouseLeave:Connect(function()
+            TweenService:Create(Btn, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Accent}):Play()
+        end)
+        
+        Btn.MouseButton1Click:Connect(function()
+            callback()
+        end)
+    end
+    
+    function WindowObj:Toggle(text, default, callback)
+        local ToggleFrame = CreateInstance("Frame", {
+            Parent = WindowFrame,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, -20, 0, 35),
+            Position = UDim2.new(0, 10, 0, 0) -- Placeholder
+        })
+        
+        local ToggleBtn = CreateInstance("TextButton", {
+            Parent = ToggleFrame,
+            BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+            Size = UDim2.new(0, 35, 0, 20),
+            Position = UDim2.new(1, -35, 0.5, -10),
+            AutoButtonColor = false,
+            Text = ""
+        })
+        
+        CreateInstance("UICorner", {CornerRadius = UDim.new(0, 10), Parent = ToggleBtn})
+        
+        local Circle = CreateInstance("Frame", {
+            Parent = ToggleBtn,
+            BackgroundColor3 = Theme.Text,
+            Size = UDim2.new(0, 16, 0, 16),
+            Position = UDim2.new(0, 2, 0.5, -8),
+            ClipsDescendants = true
+        })
+        CreateInstance("UICorner", {CornerRadius = UDim.new(0, 8), Parent = Circle})
+        
+        local Label = CreateInstance("TextLabel", {
+            Parent = ToggleFrame,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, -45, 1, 0),
+            Text = text,
+            Font = Enum.Font.GothamSemibold,
+            TextColor3 = Theme.Text,
+            TextSize = 14,
+            TextXAlignment = Enum.TextXAlignment.Left
+        })
+        
+        local function SetState(state)
+            Library.Flags[text] = state
+            local color = state and Theme.Accent or Color3.fromRGB(60, 60, 60)
+            local pos = state and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            
+            TweenService:Create(ToggleBtn, TweenInfo.new(0.2), {BackgroundColor3 = color}):Play()
+            TweenService:Create(Circle, TweenInfo.new(0.2), {Position = pos}):Play()
+            callback(state)
+        end
+        
+        SetState(default)
+        
+        ToggleBtn.MouseButton1Click:Connect(function()
+            SetState(not Library.Flags[text])
+        end)
+    end
+    
+    return WindowObj
+end
+
+return Library
