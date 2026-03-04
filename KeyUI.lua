@@ -201,8 +201,8 @@ TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 TitleLabel.Parent = Header
 
 local VersionLabel = Instance.new("TextLabel")
-VersionLabel.Size = UDim2.new(0, 60, 1, 0)
-VersionLabel.Position = UDim2.new(1, -70, 0, 0)
+VersionLabel.Size = UDim2.new(0, 40, 1, 0)
+VersionLabel.Position = UDim2.new(1, -90, 0, 0)
 VersionLabel.BackgroundTransparency = 1
 VersionLabel.Text = "v0.0.5"
 VersionLabel.TextColor3 = Color3.fromRGB(60, 60, 60)
@@ -210,6 +210,31 @@ VersionLabel.TextSize = 11
 VersionLabel.Font = Enum.Font.Gotham
 VersionLabel.TextXAlignment = Enum.TextXAlignment.Right
 VersionLabel.Parent = Header
+
+-- Close Button (X merah)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.fromOffset(28, 28)
+CloseBtn.Position = UDim2.new(1, -44, 0.5, -14)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+CloseBtn.BorderSizePixel = 0
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(100, 100, 100)
+CloseBtn.TextSize = 13
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.AutoButtonColor = false
+CloseBtn.Parent = Header
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
+
+-- Close hover effects
+CloseBtn.MouseEnter:Connect(function()
+    tween(CloseBtn, { BackgroundColor3 = Color3.fromRGB(200, 50, 50), TextColor3 = Color3.fromRGB(255, 255, 255) }, 0.15)
+end)
+CloseBtn.MouseLeave:Connect(function()
+    tween(CloseBtn, { BackgroundColor3 = Color3.fromRGB(30, 30, 30), TextColor3 = Color3.fromRGB(100, 100, 100) }, 0.15)
+end)
+CloseBtn.MouseButton1Click:Connect(function()
+    closeUI()
+end)
 
 -- =========================================
 -- DIVIDER LINE
