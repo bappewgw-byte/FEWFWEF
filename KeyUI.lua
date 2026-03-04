@@ -444,6 +444,8 @@ VerifyBtn.MouseButton1Click:Connect(function()
 end)
 
 GetKeyBtn.MouseButton1Click:Connect(function()
+    KeyInput:ReleaseFocus()
+    game:GetService("RunService").Heartbeat:Wait()
     if _copyLink then
         _copyLink()
         showNotif("Copied!", "Key link copied to clipboard", Color3.fromRGB(255, 255, 255))
@@ -453,10 +455,15 @@ GetKeyBtn.MouseButton1Click:Connect(function()
 end)
 
 HWIDBtn.MouseButton1Click:Connect(function()
+    -- Release focus dari input supaya tidak ke-paste ke TextBox
+    KeyInput:ReleaseFocus()
+    game:GetService("RunService").Heartbeat:Wait()
+
     if _lDigest and _getHwid then
         local myHwid = _lDigest(_getHwid())
-        if _clipboard then
-            _clipboard(myHwid)
+        local cb = setclipboard or toclipboard or _clipboard
+        if cb then
+            pcall(cb, myHwid)
             showNotif("HWID Copied!", "Paste in Discord #donatur-script", Color3.fromRGB(255, 255, 255))
         else
             showNotif("Error", "Clipboard tidak didukung executor ini", Color3.fromRGB(255, 80, 80))
