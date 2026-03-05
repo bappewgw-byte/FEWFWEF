@@ -233,7 +233,10 @@ CloseBtn.MouseLeave:Connect(function()
     tween(CloseBtn, { BackgroundColor3 = Color3.fromRGB(30, 30, 30), TextColor3 = Color3.fromRGB(100, 100, 100) }, 0.15)
 end)
 CloseBtn.MouseButton1Click:Connect(function()
-    closeUI()
+    -- closeUI didefinisikan setelah Panel, pakai task.defer supaya tidak nil
+    task.defer(function()
+        if closeUI then closeUI() end
+    end)
 end)
 
 -- =========================================
