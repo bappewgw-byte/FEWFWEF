@@ -20,6 +20,7 @@ end
 -- =========================================
 local storedKey = ""
 local UI_OPEN = true
+local closeUI -- forward declare
 
 -- Ambil fungsi dari _G yang di-set oleh main.lua
 local _copyLink   = _G.GenerousUI_copyLink
@@ -233,10 +234,9 @@ CloseBtn.MouseLeave:Connect(function()
     tween(CloseBtn, { BackgroundColor3 = Color3.fromRGB(30, 30, 30), TextColor3 = Color3.fromRGB(100, 100, 100) }, 0.15)
 end)
 CloseBtn.MouseButton1Click:Connect(function()
-    -- closeUI didefinisikan setelah Panel, pakai task.defer supaya tidak nil
-    task.defer(function()
-        if closeUI then closeUI() end
-    end)
+    if closeUI then
+        closeUI()
+    end
 end)
 
 -- =========================================
@@ -417,7 +417,7 @@ local function openUI()
     tween(Panel, { Size = UDim2.fromOffset(420, 340) }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 end
 
-local function closeUI()
+closeUI = function()
     tween(Panel, { Size = UDim2.fromOffset(0, 0) }, 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
     tween(Overlay, { BackgroundTransparency = 1 }, 0.3)
     tween(Blur, { Size = 0 }, 0.3)
