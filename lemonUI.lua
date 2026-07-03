@@ -520,7 +520,7 @@ function Library:CreateWindow(cfg)
     end
 
     -- ══════════════ Tab object ══════════════
-    local function CreateTab(name, iconName)
+    local function CreateTab(self, name, iconName)
         tabOrder += 1
         local order = tabOrder
         local page = makePage()
