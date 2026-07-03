@@ -1,6 +1,6 @@
 --[[
     ═══════════════════════════════════════════════════════
-      GENEROUS UI  —  v1.0
+      LEMON UI MODDED 
       Standalone UI library (extracted from Lemon Hub style)
       Usage:
         local UI = loadstring(game:HttpGet("<raw github url>"))()
