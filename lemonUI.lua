@@ -601,7 +601,12 @@ function Library:CreateWindow(cfg)
         end
     end
     track(minBtn.MouseButton1Click:Connect(function() setMinimized(true) end))
-    track(closeBtn.MouseButton1Click:Connect(function() setMinimized(true) end))
+    track(closeBtn.MouseButton1Click:Connect(function()
+        alive = false
+        for _, con in ipairs(connections) do pcall(function() con:Disconnect() end) end
+        pcall(function() gui:Destroy() end)
+        if cfg.OnClose then pcall(cfg.OnClose) end
+    end))
     local bubbleDownPos
     track(bubble.MouseButton1Down:Connect(function(x, y) bubbleDownPos = Vector2.new(x, y) end))
     track(bubble.MouseButton1Up:Connect(function(x, y)
