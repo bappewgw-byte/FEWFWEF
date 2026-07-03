@@ -566,11 +566,11 @@ function Library:CreateWindow(cfg)
 
         return {
             Select = select,
-            CreateSection = function(_, text) sectionLabel(page, text) end,
-            CreateToggle = function(_, o) return CreateToggle(page, o) end,
-            CreateSlider = function(_, o) return CreateSlider(page, o) end,
-            CreateButton = function(_, o) return CreateButton(page, o) end,
-            CreateDropdown = function(_, o) return CreateDropdown(page, o) end,
+            CreateSection = function(self, text) sectionLabel(page, text) end,
+            CreateToggle = function(self, o) return CreateToggle(page, o) end,
+            CreateSlider = function(self, o) return CreateSlider(page, o) end,
+            CreateButton = function(self, o) return CreateButton(page, o) end,
+            CreateDropdown = function(self, o) return CreateDropdown(page, o) end,
         }
     end
 
