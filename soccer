@@ -1,0 +1,63 @@
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+-- Load module
+local matchController = nil
+pcall(function()
+    matchController = require(ReplicatedStorage.Controllers.MatchPresentationController)
+end)
+
+if not matchController then
+    local controllers = ReplicatedStorage:FindFirstChild("Controllers")
+    if controllers then
+        pcall(function()
+            matchController = require(controllers.MatchPresentationController)
+        end)
+    end
+end
+
+-- Ambil MatchPacing config
+local matchPacing = nil
+pcall(function()
+    matchPacing = require(ReplicatedStorage.Configs.MatchPacing)
+end)
+
+-- Speed up match
+if matchPacing then
+    -- Simpan nilai asli
+    local originalGap = matchPacing.momentGap
+    
+    -- Override fungsi momentGap biar instant
+    matchPacing.momentGap = function(type, pace, speed)
+        return 0.05 -- Delay sangat kecil (instant)
+    end
+    
+    print("Match Speed: INSTANT")
+end
+
+-- MatchSkip remote
+local matchSkip = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("MatchSkip")
+
+-- Auto skip loop
+while task.wait(0.3) do
+    local reactUI = player.PlayerGui:FindFirstChild("ReactUI")
+    if reactUI then
+        local gameUI = reactUI:FindFirstChild("GameUI")
+        if gameUI then
+            local matchSim = gameUI:FindFirstChild("MatchSim")
+            if matchSim then
+                local skipBtn = matchSim:FindFirstChild("SkipBtn")
+                if skipBtn then
+                    pcall(function()
+                        if matchController and matchController.Skip then
+                            matchController.Skip(true)
+                            print("Skipped!")
+                            task.wait(0.2)
+                        end
+                    end)
+                end
+            end
+        end
+    end
+end
