@@ -1,6 +1,5 @@
--- tester =========================================
--- GENEROUS HUB - CUSTOM KEY UI
--- Style: Dark Minimalist + Scale Pop-up
+-- =========================================
+-- GENEROUS HUB
 -- =========================================
 
 local Players = game:GetService("Players")
